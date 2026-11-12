@@ -11,18 +11,20 @@ const testSensorReading = async () => {
     await connectDB();
 
     const reading = await SensorReading.create({
-      timestamp: new Date(),
+       timestamp: new Date(),
 
-      metadata: {
-        sensorId: "sensor-001",
-        sensorType: "temperature",
-        location: "Lab 1",
-      },
+  metadata: {
+    sensorId: "sensor-002",
+    sensorType: "humidity",
+    location: "Lab 2",
+  },
 
-      temperature: 26.5,
-      humidity: 60,
-      value: 26.5,
-    });
+  temperature: 25,
+  humidity: 65,
+  value: 65,
+  unit: "%",
+  status: "normal",
+});
 
     console.log("Sensor reading saved successfully!");
 

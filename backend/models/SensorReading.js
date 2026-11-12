@@ -14,26 +14,37 @@ const sensorReadingSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+
       sensorType: {
         type: String,
         required: true,
+        enum: ["temperature", "humidity", "motion", "light", "generic"],
       },
+
       location: {
         type: String,
         default: "Unknown",
       },
     },
 
-    temperature: {
-      type: Number,
-    },
+    temperature: Number,
 
-    humidity: {
-      type: Number,
-    },
+    humidity: Number,
 
     value: {
       type: Number,
+      required: true,
+    },
+
+    unit: {
+      type: String,
+      default: "unit",
+    },
+
+    status: {
+      type: String,
+      enum: ["normal", "warning", "critical"],
+      default: "normal",
     },
   },
   {
