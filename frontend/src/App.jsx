@@ -1,18 +1,22 @@
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
   addEdge,
+  useReactFlow,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
 import "./index.css";
 
+// Initial workflow nodes
 const initialNodes = [
   {
     id: "1",
@@ -55,6 +59,7 @@ const initialNodes = [
   },
 ];
 
+// Initial workflow connections
 const initialEdges = [
   {
     id: "e1-2",
@@ -70,17 +75,111 @@ const initialEdges = [
   },
 ];
 
-function App() {
+// Node styles
+const nodeStyles = {
+  temperature: {
+    label: "Temperature Sensor",
+    style: {
+      background: "#172554",
+      color: "#ffffff",
+      border: "1px solid #3b82f6",
+      borderRadius: "10px",
+      padding: "15px",
+      width: 180,
+    },
+  },
+
+  movingAverage: {
+    label: "Moving Average Filter",
+    style: {
+      background: "#312e81",
+      color: "#ffffff",
+      border: "1px solid #818cf8",
+      borderRadius: "10px",
+      padding: "15px",
+      width: 190,
+    },
+  },
+
+  sms: {
+    label: "SMS Alert",
+    style: {
+      background: "#064e3b",
+      color: "#ffffff",
+      border: "1px solid #10b981",
+      borderRadius: "10px",
+      padding: "15px",
+      width: 150,
+    },
+  },
+};
+
+function AppContent() {
+  const reactFlowWrapper = useRef(null);
+
+  const { screenToFlowPosition } = useReactFlow();
+
   const [nodes, setNodes, onNodesChange] =
     useNodesState(initialNodes);
 
   const [edges, setEdges, onEdgesChange] =
     useEdgesState(initialEdges);
 
+  // Connect workflow nodes
   const onConnect = useCallback(
     (params) =>
       setEdges((eds) => addEdge(params, eds)),
     [setEdges]
+  );
+
+  // Start dragging a node from the sidebar
+  const onDragStart = (event, nodeType) => {
+    event.dataTransfer.setData(
+      "application/reactflow",
+      nodeType
+    );
+
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  // Allow dropping nodes onto the canvas
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  // Add a new node when dropped onto the canvas
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      const nodeType = event.dataTransfer.getData(
+        "application/reactflow"
+      );
+
+      if (!nodeType || !nodeStyles[nodeType]) {
+        return;
+      }
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newNode = {
+        id: crypto.randomUUID(),
+        position,
+        data: {
+          label: nodeStyles[nodeType].label,
+        },
+        style: {
+          ...nodeStyles[nodeType].style,
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [screenToFlowPosition, setNodes]
   );
 
   return (
@@ -105,7 +204,13 @@ function App() {
           <h2>Node Library</h2>
           <p>Workflow Components</p>
 
-          <div className="node-item">
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) =>
+              onDragStart(event, "temperature")
+            }
+          >
             <span>🌡️</span>
             <div>
               <strong>Temperature Sensor</strong>
@@ -113,7 +218,13 @@ function App() {
             </div>
           </div>
 
-          <div className="node-item">
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) =>
+              onDragStart(event, "movingAverage")
+            }
+          >
             <span>📊</span>
             <div>
               <strong>Moving Average</strong>
@@ -121,7 +232,13 @@ function App() {
             </div>
           </div>
 
-          <div className="node-item">
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) =>
+              onDragStart(event, "sms")
+            }
+          >
             <span>🔔</span>
             <div>
               <strong>SMS Alert</strong>
@@ -141,10 +258,18 @@ function App() {
               <h2>Workflow Canvas</h2>
               <p>Design your IoT automation pipeline</p>
             </div>
-            <span className="canvas-badge">Draft Workflow</span>
+
+            <span className="canvas-badge">
+              Draft Workflow
+            </span>
           </div>
 
-          <div className="flow-wrapper">
+          <div
+            className="flow-wrapper"
+            ref={reactFlowWrapper}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+          >
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -159,6 +284,7 @@ function App() {
                 gap={20}
                 size={1}
               />
+
               <Controls />
               <MiniMap />
             </ReactFlow>
@@ -166,6 +292,15 @@ function App() {
         </section>
       </main>
     </div>
+  );
+}
+
+// ReactFlowProvider is required for useReactFlow()
+function App() {
+  return (
+    <ReactFlowProvider>
+      <AppContent />
+    </ReactFlowProvider>
   );
 }
 
