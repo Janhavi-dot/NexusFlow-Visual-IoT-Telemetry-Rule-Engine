@@ -1,6 +1,5 @@
 
-import { useCallback, useRef } from "react";
-
+import { useCallback, useRef, useEffect, useState } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -116,9 +115,27 @@ const nodeStyles = {
 
 function AppContent() {
   const reactFlowWrapper = useRef(null);
+  const [backendStatus, setBackendStatus] = useState("Checking...");
+  useEffect(() => {
+  const checkBackend = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/health");
 
-  const { screenToFlowPosition } = useReactFlow();
+      if (!response.ok) {
+        throw new Error("Backend unavailable");
+      }
 
+      setBackendStatus("Connected");
+    } catch (error) {
+      console.error("Backend connection failed:", error);
+      setBackendStatus("Disconnected");
+    }
+  };
+
+  checkBackend();
+}, []);
+
+const { screenToFlowPosition, deleteElements } = useReactFlow();
   const [nodes, setNodes, onNodesChange] =
     useNodesState(initialNodes);
 
@@ -194,9 +211,20 @@ function AppContent() {
         </div>
 
         <div className="header-status">
-          <span className="status-dot"></span>
-          Workflow Editor
-        </div>
+  <span
+    className="status-dot"
+    style={{
+      backgroundColor:
+        backendStatus === "Connected"
+          ? "#22c55e"
+          : backendStatus === "Disconnected"
+          ? "#ef4444"
+          : "#f59e0b",
+    }}
+  ></span>
+
+  Backend: {backendStatus}
+</div>
       </header>
 
       <main className="workspace">
@@ -254,15 +282,32 @@ function AppContent() {
 
         <section className="canvas-section">
           <div className="canvas-heading">
-            <div>
-              <h2>Workflow Canvas</h2>
-              <p>Design your IoT automation pipeline</p>
-            </div>
+  <div>
+    <h2>Workflow Canvas</h2>
+    <p>Design your IoT automation pipeline</p>
+  </div>
 
-            <span className="canvas-badge">
-              Draft Workflow
-            </span>
-          </div>
+  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+    <button
+      onClick={() => deleteElements({ nodes: nodes.filter((node) => node.selected) })}
+      disabled={!nodes.some((node) => node.selected)}
+      style={{
+        padding: "8px 14px",
+        background: nodes.some((node) => node.selected) ? "#991b1b" : "#334155",
+        color: "#ffffff",
+        border: "none",
+        borderRadius: "6px",
+        cursor: nodes.some((node) => node.selected) ? "pointer" : "not-allowed",
+      }}
+    >
+      Delete Selected
+    </button>
+
+    <span className="canvas-badge">
+      Draft Workflow
+    </span>
+  </div>
+</div>
 
           <div
             className="flow-wrapper"
