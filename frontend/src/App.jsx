@@ -11,11 +11,18 @@ import {
   addEdge,
   useReactFlow,
 } from "@xyflow/react";
+import CustomNode from "./nodes/CustomNode";
 
 import "@xyflow/react/dist/style.css";
 import "./index.css";
 
 // Initial workflow nodes
+
+// Custom React Flow node types
+const nodeTypes = {
+  custom: CustomNode,
+};
+
 const initialNodes = [
   {
     id: "1",
@@ -75,9 +82,14 @@ const initialEdges = [
 ];
 
 // Node styles
+
 const nodeStyles = {
   temperature: {
     label: "Temperature Sensor",
+    icon: "🌡️",
+    category: "Data Source",
+    description: "Provides temperature readings",
+    accentColor: "#3b82f6",
     style: {
       background: "#172554",
       color: "#ffffff",
@@ -90,6 +102,10 @@ const nodeStyles = {
 
   movingAverage: {
     label: "Moving Average Filter",
+    icon: "📊",
+    category: "Math Operation",
+    description: "Calculates average sensor values",
+    accentColor: "#8b5cf6",
     style: {
       background: "#312e81",
       color: "#ffffff",
@@ -102,6 +118,10 @@ const nodeStyles = {
 
   sms: {
     label: "SMS Alert",
+    icon: "🔔",
+    category: "Action Trigger",
+    description: "Triggers an SMS notification",
+    accentColor: "#10b981",
     style: {
       background: "#064e3b",
       color: "#ffffff",
@@ -184,15 +204,17 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
       });
 
       const newNode = {
-        id: crypto.randomUUID(),
-        position,
-        data: {
-          label: nodeStyles[nodeType].label,
-        },
-        style: {
-          ...nodeStyles[nodeType].style,
-        },
-      };
+  id: crypto.randomUUID(),
+  type: "custom",
+  position,
+  data: {
+    label: nodeStyles[nodeType].label,
+    icon: nodeStyles[nodeType].icon,
+    category: nodeStyles[nodeType].category,
+    description: nodeStyles[nodeType].description,
+    accentColor: nodeStyles[nodeType].accentColor,
+  },
+};
 
       setNodes((nds) => nds.concat(newNode));
     },
