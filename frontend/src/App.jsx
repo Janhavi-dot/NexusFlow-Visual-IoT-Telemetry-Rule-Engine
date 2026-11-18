@@ -19,65 +19,42 @@ import "./index.css";
 // Initial workflow nodes
 
 // Custom React Flow node types
-const nodeTypes = {
-  custom: CustomNode,
-};
-
 const initialNodes = [
   {
     id: "1",
+    type: "custom",
     position: { x: 100, y: 150 },
-    data: { label: "Temperature Sensor" },
-    style: {
-      background: "#172554",
-      color: "#ffffff",
-      border: "1px solid #3b82f6",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 180,
+    data: {
+      label: "Temperature Sensor",
+      icon: "🌡️",
+      category: "Data Source",
+      description: "Provides temperature readings",
+      accentColor: "#3b82f6",
     },
   },
   {
     id: "2",
+    type: "custom",
     position: { x: 400, y: 150 },
-    data: { label: "Moving Average Filter" },
-    style: {
-      background: "#312e81",
-      color: "#ffffff",
-      border: "1px solid #818cf8",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 190,
+    data: {
+      label: "Moving Average Filter",
+      icon: "📊",
+      category: "Math Operation",
+      description: "Calculates average sensor values",
+      accentColor: "#8b5cf6",
     },
   },
   {
     id: "3",
+    type: "custom",
     position: { x: 700, y: 150 },
-    data: { label: "SMS Alert" },
-    style: {
-      background: "#064e3b",
-      color: "#ffffff",
-      border: "1px solid #10b981",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 150,
+    data: {
+      label: "SMS Alert",
+      icon: "🔔",
+      category: "Action Trigger",
+      description: "Triggers an SMS notification",
+      accentColor: "#10b981",
     },
-  },
-];
-
-// Initial workflow connections
-const initialEdges = [
-  {
-    id: "e1-2",
-    source: "1",
-    target: "2",
-    animated: true,
-  },
-  {
-    id: "e2-3",
-    source: "2",
-    target: "3",
-    animated: true,
   },
 ];
 
@@ -340,6 +317,7 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              nodeTypes={nodeTypes}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
