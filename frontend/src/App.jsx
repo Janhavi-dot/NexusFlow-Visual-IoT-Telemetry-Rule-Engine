@@ -16,9 +16,12 @@ import CustomNode from "./nodes/CustomNode";
 import "@xyflow/react/dist/style.css";
 import "./index.css";
 
-// Initial workflow nodes
-
 // Custom React Flow node types
+const nodeTypes = {
+  custom: CustomNode,
+};
+
+// Initial workflow nodes
 const initialNodes = [
   {
     id: "1",
@@ -58,8 +61,23 @@ const initialNodes = [
   },
 ];
 
-// Node styles
+// Initial workflow connections
+const initialEdges = [
+  {
+    id: "e1-2",
+    source: "1",
+    target: "2",
+    animated: true,
+  },
+  {
+    id: "e2-3",
+    source: "2",
+    target: "3",
+    animated: true,
+  },
+];
 
+// Node configurations
 const nodeStyles = {
   temperature: {
     label: "Temperature Sensor",
@@ -71,6 +89,54 @@ const nodeStyles = {
       background: "#172554",
       color: "#ffffff",
       border: "1px solid #3b82f6",
+      borderRadius: "10px",
+      padding: "15px",
+      width: 180,
+    },
+  },
+
+  humidity: {
+    label: "Humidity Sensor",
+    icon: "💧",
+    category: "Data Source",
+    description: "Provides humidity readings",
+    accentColor: "#06b6d4",
+    style: {
+      background: "#172554",
+      color: "#ffffff",
+      border: "1px solid #06b6d4",
+      borderRadius: "10px",
+      padding: "15px",
+      width: 180,
+    },
+  },
+
+  motion: {
+    label: "Motion Sensor",
+    icon: "🚶",
+    category: "Data Source",
+    description: "Detects movement in an area",
+    accentColor: "#8b5cf6",
+    style: {
+      background: "#172554",
+      color: "#ffffff",
+      border: "1px solid #8b5cf6",
+      borderRadius: "10px",
+      padding: "15px",
+      width: 180,
+    },
+  },
+
+  light: {
+    label: "Light Sensor",
+    icon: "☀️",
+    category: "Data Source",
+    description: "Measures ambient light intensity",
+    accentColor: "#f59e0b",
+    style: {
+      background: "#172554",
+      color: "#ffffff",
+      border: "1px solid #f59e0b",
       borderRadius: "10px",
       padding: "15px",
       width: 180,
@@ -113,26 +179,29 @@ const nodeStyles = {
 function AppContent() {
   const reactFlowWrapper = useRef(null);
   const [backendStatus, setBackendStatus] = useState("Checking...");
+
+  // Check backend connection
   useEffect(() => {
-  const checkBackend = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/health");
+    const checkBackend = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/health");
 
-      if (!response.ok) {
-        throw new Error("Backend unavailable");
+        if (!response.ok) {
+          throw new Error("Backend unavailable");
+        }
+
+        setBackendStatus("Connected");
+      } catch (error) {
+        console.error("Backend connection failed:", error);
+        setBackendStatus("Disconnected");
       }
+    };
 
-      setBackendStatus("Connected");
-    } catch (error) {
-      console.error("Backend connection failed:", error);
-      setBackendStatus("Disconnected");
-    }
-  };
+    checkBackend();
+  }, []);
 
-  checkBackend();
-}, []);
+  const { screenToFlowPosition, deleteElements } = useReactFlow();
 
-const { screenToFlowPosition, deleteElements } = useReactFlow();
   const [nodes, setNodes, onNodesChange] =
     useNodesState(initialNodes);
 
@@ -141,8 +210,7 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
 
   // Connect workflow nodes
   const onConnect = useCallback(
-    (params) =>
-      setEdges((eds) => addEdge(params, eds)),
+    (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
@@ -181,17 +249,17 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
       });
 
       const newNode = {
-  id: crypto.randomUUID(),
-  type: "custom",
-  position,
-  data: {
-    label: nodeStyles[nodeType].label,
-    icon: nodeStyles[nodeType].icon,
-    category: nodeStyles[nodeType].category,
-    description: nodeStyles[nodeType].description,
-    accentColor: nodeStyles[nodeType].accentColor,
-  },
-};
+        id: crypto.randomUUID(),
+        type: "custom",
+        position,
+        data: {
+          label: nodeStyles[nodeType].label,
+          icon: nodeStyles[nodeType].icon,
+          category: nodeStyles[nodeType].category,
+          description: nodeStyles[nodeType].description,
+          accentColor: nodeStyles[nodeType].accentColor,
+        },
+      };
 
       setNodes((nds) => nds.concat(newNode));
     },
@@ -210,20 +278,20 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
         </div>
 
         <div className="header-status">
-  <span
-    className="status-dot"
-    style={{
-      backgroundColor:
-        backendStatus === "Connected"
-          ? "#22c55e"
-          : backendStatus === "Disconnected"
-          ? "#ef4444"
-          : "#f59e0b",
-    }}
-  ></span>
+          <span
+            className="status-dot"
+            style={{
+              backgroundColor:
+                backendStatus === "Connected"
+                  ? "#22c55e"
+                  : backendStatus === "Disconnected"
+                  ? "#ef4444"
+                  : "#f59e0b",
+            }}
+          ></span>
 
-  Backend: {backendStatus}
-</div>
+          Backend: {backendStatus}
+        </div>
       </header>
 
       <main className="workspace">
@@ -231,6 +299,7 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
           <h2>Node Library</h2>
           <p>Workflow Components</p>
 
+          {/* Temperature Sensor */}
           <div
             className="node-item"
             draggable
@@ -245,6 +314,52 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
             </div>
           </div>
 
+          {/* Humidity Sensor */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) =>
+              onDragStart(event, "humidity")
+            }
+          >
+            <span>💧</span>
+            <div>
+              <strong>Humidity Sensor</strong>
+              <small>Input Node</small>
+            </div>
+          </div>
+
+          {/* Motion Sensor */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) =>
+              onDragStart(event, "motion")
+            }
+          >
+            <span>🚶</span>
+            <div>
+              <strong>Motion Sensor</strong>
+              <small>Input Node</small>
+            </div>
+          </div>
+
+          {/* Light Sensor */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) =>
+              onDragStart(event, "light")
+            }
+          >
+            <span>☀️</span>
+            <div>
+              <strong>Light Sensor</strong>
+              <small>Input Node</small>
+            </div>
+          </div>
+
+          {/* Moving Average */}
           <div
             className="node-item"
             draggable
@@ -259,6 +374,7 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
             </div>
           </div>
 
+          {/* SMS Alert */}
           <div
             className="node-item"
             draggable
@@ -281,32 +397,46 @@ const { screenToFlowPosition, deleteElements } = useReactFlow();
 
         <section className="canvas-section">
           <div className="canvas-heading">
-  <div>
-    <h2>Workflow Canvas</h2>
-    <p>Design your IoT automation pipeline</p>
-  </div>
+            <div>
+              <h2>Workflow Canvas</h2>
+              <p>Design your IoT automation pipeline</p>
+            </div>
 
-  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-    <button
-      onClick={() => deleteElements({ nodes: nodes.filter((node) => node.selected) })}
-      disabled={!nodes.some((node) => node.selected)}
-      style={{
-        padding: "8px 14px",
-        background: nodes.some((node) => node.selected) ? "#991b1b" : "#334155",
-        color: "#ffffff",
-        border: "none",
-        borderRadius: "6px",
-        cursor: nodes.some((node) => node.selected) ? "pointer" : "not-allowed",
-      }}
-    >
-      Delete Selected
-    </button>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                alignItems: "center",
+              }}
+            >
+              <button
+                onClick={() =>
+                  deleteElements({
+                    nodes: nodes.filter((node) => node.selected),
+                  })
+                }
+                disabled={!nodes.some((node) => node.selected)}
+                style={{
+                  padding: "8px 14px",
+                  background: nodes.some((node) => node.selected)
+                    ? "#991b1b"
+                    : "#334155",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: nodes.some((node) => node.selected)
+                    ? "pointer"
+                    : "not-allowed",
+                }}
+              >
+                Delete Selected
+              </button>
 
-    <span className="canvas-badge">
-      Draft Workflow
-    </span>
-  </div>
-</div>
+              <span className="canvas-badge">
+                Draft Workflow
+              </span>
+            </div>
+          </div>
 
           <div
             className="flow-wrapper"
