@@ -12,6 +12,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import CustomNode from "./nodes/CustomNode";
+import { compileWorkflow } from "./utils/logicCompiler";
 
 import "@xyflow/react/dist/style.css";
 import "./index.css";
@@ -174,6 +175,51 @@ const nodeStyles = {
       width: 150,
     },
   },
+
+  add: {
+  label: "Add",
+  icon: "➕",
+  category: "Math Operation",
+  description: "Adds two input values",
+  accentColor: "#10b981",
+},
+subtract: {
+  label: "Subtract",
+  icon: "➖",
+  category: "Math Operation",
+  description: "Subtracts one input from another",
+  accentColor: "#10b981",
+},
+multiply: {
+  label: "Multiply",
+  icon: "✖️",
+  category: "Math Operation",
+  description: "Multiplies input values",
+  accentColor: "#10b981",
+},
+divide: {
+  label: "Divide",
+  icon: "➗",
+  category: "Math Operation",
+  description: "Divides one input by another",
+  accentColor: "#10b981",
+},
+
+email: {
+  label: "Email Alert",
+  icon: "📧",
+  category: "Action Triggers",
+  description: "Sends an email alert",
+  accentColor: "#f59e0b",
+},
+notification: {
+  label: "Push Notification",
+  icon: "🔔",
+  category: "Action Triggers",
+  description: "Sends a push notification",
+  color: "#f59e0b",
+},
+
 };
 
 function AppContent() {
@@ -207,6 +253,27 @@ function AppContent() {
 
   const [edges, setEdges, onEdgesChange] =
     useEdgesState(initialEdges);
+
+    const [executionLogs, setExecutionLogs] = useState([]);
+const [workflowStatus, setWorkflowStatus] = useState("Idle");
+
+const runWorkflow = () => {
+  const compiled = compileWorkflow(nodes, edges);
+
+  if (!compiled.success) {
+    setWorkflowStatus("Compilation Failed");
+    setExecutionLogs(compiled.logs);
+    return;
+  }
+
+  const results = compiled.execute();
+
+  setWorkflowStatus("Executed Successfully");
+  setExecutionLogs([
+    "Workflow compiled successfully.",
+    ...results,
+  ]);
+};
 
   // Connect workflow nodes
   const onConnect = useCallback(
@@ -359,6 +426,38 @@ function AppContent() {
             </div>
           </div>
 
+          <div
+  className="sidebar-node"
+  draggable
+  onDragStart={(event) => onDragStart(event, "add")}
+>
+  ➕ Add
+</div>
+
+<div
+  className="sidebar-node"
+  draggable
+  onDragStart={(event) => onDragStart(event, "subtract")}
+>
+  ➖ Subtract
+</div>
+
+<div
+  className="sidebar-node"
+  draggable
+  onDragStart={(event) => onDragStart(event, "multiply")}
+>
+  ✖️ Multiply
+</div>
+
+<div
+  className="sidebar-node"
+  draggable
+  onDragStart={(event) => onDragStart(event, "divide")}
+>
+  ➗ Divide
+</div>
+
           {/* Moving Average */}
           <div
             className="node-item"
@@ -388,6 +487,32 @@ function AppContent() {
               <small>Output Node</small>
             </div>
           </div>
+
+          {/* Email Alert */}
+<div
+  className="node-item"
+  draggable
+  onDragStart={(event) => onDragStart(event, "email")}
+>
+  <span>📧</span>
+  <div>
+    <strong>Email Alert</strong>
+    <small>Output Node</small>
+  </div>
+</div>
+
+{/* Push Notification */}
+<div
+  className="node-item"
+  draggable
+  onDragStart={(event) => onDragStart(event, "notification")}
+>
+  <span>🔔</span>
+  <div>
+    <strong>Push Notification</strong>
+    <small>Output Node</small>
+  </div>
+</div>
 
           <div className="sidebar-note">
             Drag nodes and connect them
@@ -432,9 +557,23 @@ function AppContent() {
                 Delete Selected
               </button>
 
-              <span className="canvas-badge">
-                Draft Workflow
-              </span>
+              <<button
+  onClick={runWorkflow}
+  style={{
+    padding: "8px 14px",
+    background: "#16a34a",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  }}
+>
+  ▶ Run Workflow
+</button>
+
+<span className="canvas-badge">
+  {workflowStatus}
+</span>
             </div>
           </div>
 
@@ -464,6 +603,32 @@ function AppContent() {
               <MiniMap />
             </ReactFlow>
           </div>
+          <div
+  style={{
+    marginTop: "12px",
+    padding: "16px",
+    background: "#0f172a",
+    border: "1px solid #334155",
+    borderRadius: "8px",
+    color: "#e2e8f0",
+  }}
+>
+  <h3 style={{ marginTop: 0 }}>Execution Log</h3>
+
+  {executionLogs.length === 0 ? (
+    <p style={{ color: "#94a3b8" }}>
+      Click Run Workflow to execute your pipeline.
+    </p>
+  ) : (
+    <div>
+      {executionLogs.map((log, index) => (
+        <p key={index} style={{ margin: "6px 0" }}>
+          {log}
+        </p>
+      ))}
+    </div>
+  )}
+</div>
         </section>
       </main>
     </div>
