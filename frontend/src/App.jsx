@@ -1,4 +1,3 @@
-
 import { useCallback, useRef, useEffect, useState } from "react";
 import {
   ReactFlow,
@@ -86,140 +85,84 @@ const nodeStyles = {
     category: "Data Source",
     description: "Provides temperature readings",
     accentColor: "#3b82f6",
-    style: {
-      background: "#172554",
-      color: "#ffffff",
-      border: "1px solid #3b82f6",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 180,
-    },
   },
-
   humidity: {
     label: "Humidity Sensor",
     icon: "💧",
     category: "Data Source",
     description: "Provides humidity readings",
     accentColor: "#06b6d4",
-    style: {
-      background: "#172554",
-      color: "#ffffff",
-      border: "1px solid #06b6d4",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 180,
-    },
   },
-
   motion: {
     label: "Motion Sensor",
     icon: "🚶",
     category: "Data Source",
     description: "Detects movement in an area",
     accentColor: "#8b5cf6",
-    style: {
-      background: "#172554",
-      color: "#ffffff",
-      border: "1px solid #8b5cf6",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 180,
-    },
   },
-
   light: {
     label: "Light Sensor",
     icon: "☀️",
     category: "Data Source",
     description: "Measures ambient light intensity",
     accentColor: "#f59e0b",
-    style: {
-      background: "#172554",
-      color: "#ffffff",
-      border: "1px solid #f59e0b",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 180,
-    },
   },
-
   movingAverage: {
     label: "Moving Average Filter",
     icon: "📊",
     category: "Math Operation",
     description: "Calculates average sensor values",
     accentColor: "#8b5cf6",
-    style: {
-      background: "#312e81",
-      color: "#ffffff",
-      border: "1px solid #818cf8",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 190,
-    },
   },
-
   sms: {
     label: "SMS Alert",
     icon: "🔔",
     category: "Action Trigger",
     description: "Triggers an SMS notification",
     accentColor: "#10b981",
-    style: {
-      background: "#064e3b",
-      color: "#ffffff",
-      border: "1px solid #10b981",
-      borderRadius: "10px",
-      padding: "15px",
-      width: 150,
-    },
   },
-
   add: {
-  label: "Add",
-  icon: "➕",
-  category: "Math Operation",
-  description: "Adds two input values",
-  accentColor: "#10b981",
-},
-subtract: {
-  label: "Subtract",
-  icon: "➖",
-  category: "Math Operation",
-  description: "Subtracts one input from another",
-  accentColor: "#10b981",
-},
-multiply: {
-  label: "Multiply",
-  icon: "✖️",
-  category: "Math Operation",
-  description: "Multiplies input values",
-  accentColor: "#10b981",
-},
-divide: {
-  label: "Divide",
-  icon: "➗",
-  category: "Math Operation",
-  description: "Divides one input by another",
-  accentColor: "#10b981",
-},
-
-email: {
-  label: "Email Alert",
-  icon: "📧",
-  category: "Action Triggers",
-  description: "Sends an email alert",
-  accentColor: "#f59e0b",
-},
-notification: {
-  label: "Push Notification",
-  icon: "🔔",
-  category: "Action Triggers",
-  description: "Sends a push notification",
-  color: "#f59e0b",
-},
-
+    label: "Add",
+    icon: "➕",
+    category: "Math Operation",
+    description: "Adds two input values",
+    accentColor: "#10b981",
+  },
+  subtract: {
+    label: "Subtract",
+    icon: "➖",
+    category: "Math Operation",
+    description: "Subtracts one input from another",
+    accentColor: "#10b981",
+  },
+  multiply: {
+    label: "Multiply",
+    icon: "✖️",
+    category: "Math Operation",
+    description: "Multiplies input values",
+    accentColor: "#10b981",
+  },
+  divide: {
+    label: "Divide",
+    icon: "➗",
+    category: "Math Operation",
+    description: "Divides one input by another",
+    accentColor: "#10b981",
+  },
+  email: {
+    label: "Email Alert",
+    icon: "📧",
+    category: "Action Trigger",
+    description: "Sends an email alert",
+    accentColor: "#f59e0b",
+  },
+  notification: {
+    label: "Push Notification",
+    icon: "🔔",
+    category: "Action Trigger",
+    description: "Sends a push notification",
+    accentColor: "#f59e0b",
+  },
 };
 
 function AppContent() {
@@ -248,32 +191,25 @@ function AppContent() {
 
   const { screenToFlowPosition, deleteElements } = useReactFlow();
 
-  const [nodes, setNodes, onNodesChange] =
-    useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [executionLogs, setExecutionLogs] = useState([]);
+  const [workflowStatus, setWorkflowStatus] = useState("Idle");
 
-  const [edges, setEdges, onEdgesChange] =
-    useEdgesState(initialEdges);
+  const runWorkflow = () => {
+    const compiled = compileWorkflow(nodes, edges);
 
-    const [executionLogs, setExecutionLogs] = useState([]);
-const [workflowStatus, setWorkflowStatus] = useState("Idle");
+    if (!compiled.success) {
+      setWorkflowStatus("Compilation Failed");
+      setExecutionLogs(compiled.logs);
+      return;
+    }
 
-const runWorkflow = () => {
-  const compiled = compileWorkflow(nodes, edges);
+    const results = compiled.execute();
 
-  if (!compiled.success) {
-    setWorkflowStatus("Compilation Failed");
-    setExecutionLogs(compiled.logs);
-    return;
-  }
-
-  const results = compiled.execute();
-
-  setWorkflowStatus("Executed Successfully");
-  setExecutionLogs([
-    "Workflow compiled successfully.",
-    ...results,
-  ]);
-};
+    setWorkflowStatus("Executed Successfully");
+    setExecutionLogs(["Workflow compiled successfully.", ...results]);
+  };
 
   // Connect workflow nodes
   const onConnect = useCallback(
@@ -283,11 +219,7 @@ const runWorkflow = () => {
 
   // Start dragging a node from the sidebar
   const onDragStart = (event, nodeType) => {
-    event.dataTransfer.setData(
-      "application/reactflow",
-      nodeType
-    );
-
+    event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 
@@ -302,9 +234,7 @@ const runWorkflow = () => {
     (event) => {
       event.preventDefault();
 
-      const nodeType = event.dataTransfer.getData(
-        "application/reactflow"
-      );
+      const nodeType = event.dataTransfer.getData("application/reactflow");
 
       if (!nodeType || !nodeStyles[nodeType]) {
         return;
@@ -356,7 +286,6 @@ const runWorkflow = () => {
                   : "#f59e0b",
             }}
           ></span>
-
           Backend: {backendStatus}
         </div>
       </header>
@@ -370,9 +299,7 @@ const runWorkflow = () => {
           <div
             className="node-item"
             draggable
-            onDragStart={(event) =>
-              onDragStart(event, "temperature")
-            }
+            onDragStart={(event) => onDragStart(event, "temperature")}
           >
             <span>🌡️</span>
             <div>
@@ -385,9 +312,7 @@ const runWorkflow = () => {
           <div
             className="node-item"
             draggable
-            onDragStart={(event) =>
-              onDragStart(event, "humidity")
-            }
+            onDragStart={(event) => onDragStart(event, "humidity")}
           >
             <span>💧</span>
             <div>
@@ -400,9 +325,7 @@ const runWorkflow = () => {
           <div
             className="node-item"
             draggable
-            onDragStart={(event) =>
-              onDragStart(event, "motion")
-            }
+            onDragStart={(event) => onDragStart(event, "motion")}
           >
             <span>🚶</span>
             <div>
@@ -415,9 +338,7 @@ const runWorkflow = () => {
           <div
             className="node-item"
             draggable
-            onDragStart={(event) =>
-              onDragStart(event, "light")
-            }
+            onDragStart={(event) => onDragStart(event, "light")}
           >
             <span>☀️</span>
             <div>
@@ -426,45 +347,63 @@ const runWorkflow = () => {
             </div>
           </div>
 
+          {/* Add */}
           <div
-  className="sidebar-node"
-  draggable
-  onDragStart={(event) => onDragStart(event, "add")}
->
-  ➕ Add
-</div>
+            className="node-item"
+            draggable
+            onDragStart={(event) => onDragStart(event, "add")}
+          >
+            <span>➕</span>
+            <div>
+              <strong>Add</strong>
+              <small>Math Node</small>
+            </div>
+          </div>
 
-<div
-  className="sidebar-node"
-  draggable
-  onDragStart={(event) => onDragStart(event, "subtract")}
->
-  ➖ Subtract
-</div>
+          {/* Subtract */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) => onDragStart(event, "subtract")}
+          >
+            <span>➖</span>
+            <div>
+              <strong>Subtract</strong>
+              <small>Math Node</small>
+            </div>
+          </div>
 
-<div
-  className="sidebar-node"
-  draggable
-  onDragStart={(event) => onDragStart(event, "multiply")}
->
-  ✖️ Multiply
-</div>
+          {/* Multiply */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) => onDragStart(event, "multiply")}
+          >
+            <span>✖️</span>
+            <div>
+              <strong>Multiply</strong>
+              <small>Math Node</small>
+            </div>
+          </div>
 
-<div
-  className="sidebar-node"
-  draggable
-  onDragStart={(event) => onDragStart(event, "divide")}
->
-  ➗ Divide
-</div>
+          {/* Divide */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) => onDragStart(event, "divide")}
+          >
+            <span>➗</span>
+            <div>
+              <strong>Divide</strong>
+              <small>Math Node</small>
+            </div>
+          </div>
 
           {/* Moving Average */}
           <div
             className="node-item"
             draggable
-            onDragStart={(event) =>
-              onDragStart(event, "movingAverage")
-            }
+            onDragStart={(event) => onDragStart(event, "movingAverage")}
           >
             <span>📊</span>
             <div>
@@ -477,9 +416,7 @@ const runWorkflow = () => {
           <div
             className="node-item"
             draggable
-            onDragStart={(event) =>
-              onDragStart(event, "sms")
-            }
+            onDragStart={(event) => onDragStart(event, "sms")}
           >
             <span>🔔</span>
             <div>
@@ -489,34 +426,33 @@ const runWorkflow = () => {
           </div>
 
           {/* Email Alert */}
-<div
-  className="node-item"
-  draggable
-  onDragStart={(event) => onDragStart(event, "email")}
->
-  <span>📧</span>
-  <div>
-    <strong>Email Alert</strong>
-    <small>Output Node</small>
-  </div>
-</div>
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) => onDragStart(event, "email")}
+          >
+            <span>📧</span>
+            <div>
+              <strong>Email Alert</strong>
+              <small>Output Node</small>
+            </div>
+          </div>
 
-{/* Push Notification */}
-<div
-  className="node-item"
-  draggable
-  onDragStart={(event) => onDragStart(event, "notification")}
->
-  <span>🔔</span>
-  <div>
-    <strong>Push Notification</strong>
-    <small>Output Node</small>
-  </div>
-</div>
+          {/* Push Notification */}
+          <div
+            className="node-item"
+            draggable
+            onDragStart={(event) => onDragStart(event, "notification")}
+          >
+            <span>🔔</span>
+            <div>
+              <strong>Push Notification</strong>
+              <small>Output Node</small>
+            </div>
+          </div>
 
           <div className="sidebar-note">
-            Drag nodes and connect them
-            to create your workflow.
+            Drag nodes and connect them to create your workflow.
           </div>
         </aside>
 
@@ -557,23 +493,21 @@ const runWorkflow = () => {
                 Delete Selected
               </button>
 
-              <<button
-  onClick={runWorkflow}
-  style={{
-    padding: "8px 14px",
-    background: "#16a34a",
-    color: "#ffffff",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  }}
->
-  ▶ Run Workflow
-</button>
+              <button
+                onClick={runWorkflow}
+                style={{
+                  padding: "8px 14px",
+                  background: "#16a34a",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                ▶ Run Workflow
+              </button>
 
-<span className="canvas-badge">
-  {workflowStatus}
-</span>
+              <span className="canvas-badge">{workflowStatus}</span>
             </div>
           </div>
 
@@ -593,42 +527,38 @@ const runWorkflow = () => {
               fitView
               fitViewOptions={{ padding: 0.2 }}
             >
-              <Background
-                color="#64748b"
-                gap={20}
-                size={1}
-              />
-
+              <Background color="#64748b" gap={20} size={1} />
               <Controls />
               <MiniMap />
             </ReactFlow>
           </div>
-          <div
-  style={{
-    marginTop: "12px",
-    padding: "16px",
-    background: "#0f172a",
-    border: "1px solid #334155",
-    borderRadius: "8px",
-    color: "#e2e8f0",
-  }}
->
-  <h3 style={{ marginTop: 0 }}>Execution Log</h3>
 
-  {executionLogs.length === 0 ? (
-    <p style={{ color: "#94a3b8" }}>
-      Click Run Workflow to execute your pipeline.
-    </p>
-  ) : (
-    <div>
-      {executionLogs.map((log, index) => (
-        <p key={index} style={{ margin: "6px 0" }}>
-          {log}
-        </p>
-      ))}
-    </div>
-  )}
-</div>
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "16px",
+              background: "#0f172a",
+              border: "1px solid #334155",
+              borderRadius: "8px",
+              color: "#e2e8f0",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>Execution Log</h3>
+
+            {executionLogs.length === 0 ? (
+              <p style={{ color: "#94a3b8" }}>
+                Click Run Workflow to execute your pipeline.
+              </p>
+            ) : (
+              <div>
+                {executionLogs.map((log, index) => (
+                  <p key={index} style={{ margin: "6px 0" }}>
+                    {log}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
       </main>
     </div>
