@@ -40,12 +40,15 @@ router.post("/ingest", async (req, res) => {
       timestamp: new Date(),
     });
 
+    // Broadcast live sensor reading
+    const io = req.app.get("io");
+    io.emit("sensor-data", reading);
+
     return res.status(201).json({
       success: true,
       message: "Sensor reading saved successfully",
       data: reading,
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
